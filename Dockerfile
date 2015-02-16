@@ -1,5 +1,7 @@
 FROM dockerfile/supervisor
 MAINTAINER https://m-ko-x.de Markus Kosmal <code@m-ko-x.de>
+# Modified to use the new cloud9 v3 SDK release
+
 
 # ------------------------------------------------------------------------------
 # Install base
@@ -19,27 +21,13 @@ RUN /bin/bash -c '. /.nvm/nvm.sh && \
     nvm install v0.10.18 && \
     nvm use v0.10.18 && \
     nvm alias default v0.10.18'
-    
+
 # ------------------------------------------------------------------------------
 # Install Cloud9
-RUN git clone https://github.com/ajaxorg/cloud9/ /cloud9
-WORKDIR /cloud9
-RUN npm install
+RUN git clone https://github.com/c9/core.git /c9sdk
+WORKDIR /c9sdk
+RUN scripts/install-sdk.sh
 
-RUN npm install -g sm
-
-WORKDIR /cloud9/node_modules/ace
-RUN make clean build
-
-WORKDIR /cloud9/node_modules/packager
-RUN rm -rf node_modules
-RUN sm install
-    
-WORKDIR /cloud9
-CMD ["make"]
-
-RUN node ./node_modules/mappings/scripts/postinstall-notice.js
-    
 # Add supervisord conf
 ADD conf/cloud9.conf /etc/supervisor/conf.d/
 
@@ -54,7 +42,7 @@ RUN apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 # ------------------------------------------------------------------------------
 # Expose ports.
-EXPOSE 3131
+EXPOSE 8181
 
 # ------------------------------------------------------------------------------
 # Start supervisor, define default command.
